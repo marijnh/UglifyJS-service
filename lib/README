@@ -1,0 +1,6 @@
+In this dir, do...
+
+git clone https://github.com/mishoo/UglifyJS.git
+git clone http://marijnhaverbeke.nl/git/mold
+
+... and you should be good to go.

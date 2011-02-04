@@ -1,0 +1,92 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>UglifyJS JavaScript minification</title>
+    <style type="text/css">
+      body {padding: 2em 4em; font-family: tahoma, sans-serif;}
+      a {text-decoration: none;}
+      input[type=text], textarea {border: 1px solid black; width: 100%}
+      #httpdoc {background: #eee; padding: .1em 1em; margin-bottom: 1em;}
+    </style>
+  </head>
+
+  <body>
+    <h1><a href="http://github.com/mishoo/UglifyJS/">UglifyJS</a> JavaScript minification</h1>
+
+    <p>Use the form below, or
+    the <a href="javascript:void(document.getElementById('httpdoc').style.display='');">HTTP
+    API</a> to compress JavaScript code.</p>
+
+    <div id="httpdoc" style="display: none">
+      <p>UglifyJS compression can be used as an HTTP service by
+      sending a <code>POST</code> or <code>GET</code> request to this
+      URL, with any of the parameters listed below either embedded in
+      the URL, or in a <code>application/x-www-form-urlencoded</code>
+      request body. The response body will contain the compressed code
+      in case of a successful request, or an error message when
+      returning an error HTTP status code.</p>
+
+      <dl>
+        <dt><code>code_url</code></dt>
+        <dd>A URL pointing at a JavaScript file to compress. Only
+        the <code>http:</code> and <code>https:</code> protocols are
+        supported. Invalid or errorring URLs will be ignored. This
+        parameter can be given multiple times to concatenate the
+        scripts at those locations together.</dd>
+
+        <dt><code>js_code</code></dt>
+        <dd>JavaScript code passed directly inside the request. Both
+        this parameter and <code>code_url</code> can be given, in
+        which case the code passed in <code>js_code</code> will end up
+        after the code from URLs.</dd>
+
+        <dt><code>download</code></dt>
+        <dd>When given, this should contain a filename. The server
+        will add a <code>Content-Disposition</code> header to the
+        response, which causes typical browsers to download the
+        response under the given filename.</dd>
+      </dl>
+
+      <p>This API is loosely based
+      on <a href="http://code.google.com/closure/compiler/docs/api-ref.html">Google's
+      Closure API</a>, and should be compatible for simple uses.</p>
+
+      <p>If you are planning to use this for something that might
+      generate a lot of traffic,
+      please <a href="mailto:marijnh@gmail.com">discuss</a> with me
+      first, since my server isn't very heavy.</p>
+    </div>
+
+    <form method="post">
+      <div id="urlinputs">
+        <div>Script URL: <a href="javascript:void(addURLInput());">[+]</a></div>
+        <?for url ($arg.urls.length ? $arg.urls : [''])?>       
+          <div><input name="code_url" type="text" value="[?t url?]"></div>
+        <?for.?>
+      </div>
+      <p>
+        Script text:<br/>
+        <textarea style="height: 20em" name="js_code"><?t $arg.code || ''?></textarea>
+      </p>
+      <p>
+        <input type="submit" name="form" value="show"> or
+        <input type="submit" value="download"> as <input name="download" type="text" style="width: 10em">
+      </p>
+    </form>
+    <?if $arg.mini?>
+      <p>
+        Ugly version (<?t $arg.old_size - $arg.mini.length?> characters saved):<br/>
+        <textarea style="height: 20em"><?t $arg.mini?></textarea>
+      </p>
+    <?elif $arg.error?>
+      <p>Failed to uglify: <strong><?t $arg.error?></strong></p>
+    <?if.?>
+
+    <script>
+      function addURLInput() {
+        var div = document.getElementById("urlinputs").appendChild(document.createElement("DIV"));
+        div.innerHTML = '<input name="code_url" type="text">';
+      }
+    </script>
+  </body>
+</html>
