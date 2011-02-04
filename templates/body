@@ -7,6 +7,20 @@
       a {text-decoration: none;}
       input[type=text], textarea {border: 1px solid black; width: 100%}
       #httpdoc {background: #eee; padding: .1em 1em; margin-bottom: 1em;}
+
+			/* pulsy! and a green bgcolor as fallback for non-webkit */
+			@-webkit-keyframes pulse {
+			  0% { background-color: rgb(241, 241, 241); }
+			  100% { background-color: rgb(217,234,217); }
+			}
+			.active-drop-target {
+				-webkit-animation-name: pulse; 
+				-webkit-animation-duration: 0.7s; 
+				-webkit-animation-iteration-count: infinite;
+				-webkit-animation-direction: alternate;
+				-webkit-animation-timing-function: in-and-out;
+				background-color: rgb(217,234,217);	
+			}
     </style>
   </head>
 
@@ -64,9 +78,17 @@
           <div><input name="code_url" type="text" value="[?t url?]"></div>
         <?for.?>
       </div>
+      <div id="file-api-support" style="display: none;">
+        <p>
+          In this browser you can also just drag-n-drop files onto the text area to have their contents appended in the textarea. Alternatively you can select files to be appended below. Uses the local File API, no uploading required.
+        </p>
+        <p>
+        	<input type="file" id="file-api-inp" name="targets[]" multiple/> (If order is important, select files one-by-one)
+        </p>
+      </div>
       <p>
         Script text:<br/>
-        <textarea style="height: 20em" name="js_code"><?t $arg.code || ''?></textarea>
+        <textarea style="height: 20em" id="code" name="js_code"><?t $arg.code || ''?></textarea>
       </p>
       <p>
         <input type="submit" name="form" value="show"> or
@@ -75,7 +97,10 @@
     </form>
     <?if $arg.mini?>
       <p>
-        Ugly version (<?t $arg.old_size - $arg.mini.length?> characters saved):<br/>
+        <b>Ugly version:</b><br/>
+        Old version:  <?t $arg.old_size?> bytes<br/>
+        New version: <?t $arg.mini.length?> bytes<br/>
+        Saved: <?t $arg.old_size - $arg.mini.length?> (result is <?t ($arg.mini.length/$arg.old_size)*100?>% of original)<br/>
         <textarea style="height: 20em"><?t $arg.mini?></textarea>
       </p>
     <?elif $arg.error?>
@@ -87,6 +112,87 @@
         var div = document.getElementById("urlinputs").appendChild(document.createElement("DIV"));
         div.innerHTML = '<input name="code_url" type="text">';
       }
+    </script>
+    <!-- local file api stuff (move to own file, eventually :) -->
+    <script>
+    	if (window.File && window.FileReader && window.FileList) {
+    		new function(){ // local scope
+				  var stopEvent = function(e){
+						e.stopPropagation();
+						e.preventDefault();
+				  };
+	
+					// take a FileList object and process all the files it contains    	
+				  var processFiles = function(files){
+				  	for (var i=0; i<files.length; ++i) read(files[i]);
+				  };
+	
+					// read a single File with a FileReader
+					// onload, append the result to the textarea (with a return appended to it)
+					// maybe we could append a semi-colon to prevent most concat issues? 
+					// and a comment to make clear the file starts there? will be stripped anyways.
+				  var read = function(file){
+				  	var fr = new FileReader;
+				  	fr.onload = function(e){
+				  		var e = document.getElementById('code');
+				  		e.value = 
+				  			e.value + 
+				  			';\n\n' +
+				  			'// #################################\n' +
+				  			'// ## Start of file: '+file.name+'\n' +
+				  			'// #################################\n\n' +
+				  			fr.result;
+				  	};
+				  	// on error flash red?
+				  	fr.onabort = function(e){ 
+				  		console.log("The file read was aborted...",e,'['+e.getMessage()+']'); 
+				  	};
+				  	fr.onerror = function(e){ 
+				  		console.log("There was an error reading the file...",e,'['+e.getMessage()+']'); 
+				  	};
+				  	// start read (script files are utf-8, no? :)
+				  	fr.readAsText(file);
+				  };
+				  
+				  // show desc for drag-n-drop / file picker
+	    		var e = document.getElementById('file-api-support');
+	    		if (e) e.style.display = 'block';
+	
+				  // when you drag.
+				  e = document.getElementById('code');
+
+					// dragging onto textarea
+					e.ondragenter = function(evt){
+						stopEvent(evt);
+						this.className = 'active-drop-target';
+					};
+					// drag-moving over the textarea
+					e.ondragover = function(evt){
+						stopEvent(evt);
+					};
+					// no-longer dragging over the textarea
+					e.ondragleave = function(evt){
+						stopEvent(evt);
+						this.className = '';
+					};
+					// dropped on the textarea
+				  e.ondrop = function(evt){
+				    stopEvent(evt);
+				    this.className = '';
+				
+				    var files = evt.dataTransfer.files; // FileList object.
+						processFiles(files);
+					};
+					
+					e = null;
+	
+					// this handles the file input for selecting local files
+					document.getElementById('file-api-inp').onchange = function(){
+						var files = this.files;
+						processFiles(files);
+					};
+  			};
+    	}
     </script>
   </body>
 </html>
