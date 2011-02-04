@@ -15,7 +15,7 @@
 
     <p>Use the form below, or
     the <a href="javascript:void(document.getElementById('httpdoc').style.display='');">HTTP
-    API</a> to compress JavaScript code.</p>
+    API</a>, to compress JavaScript code.</p>
 
     <div id="httpdoc" style="display: none">
       <p>UglifyJS compression can be used as an HTTP service by
