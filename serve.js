@@ -30,7 +30,7 @@ function template(name) {
 }
 
 function uglify(code) {
-  return pro.gen_code(pro.ast_squeeze(pro.ast_mangle(jsp.parse(code))));
+  return pro.gen_code(pro.ast_squeeze(pro.ast_mangle(jsp.parse(code))), {ascii_only: true, beautify: false});
 }
 
 function readData(obj, c) {
