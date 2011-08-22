@@ -88,7 +88,9 @@
         order is important, add your files one-by-one.
         <input type="file" id="file-api-inp" multiple/>
       </p>
-
+      <p>
+        <input type="checkbox" name="ascii_only" value="false" />Don't encode non-ascii characters
+      </p>
       <p>
         <input type="submit" name="form" value="show"> or
         <input type="submit" value="download"> as <input name="download" type="text" style="width: 10em">
