@@ -29,8 +29,11 @@ function template(name) {
   return templates[name] = Mold.bake(fs.readFileSync("templates/" + name, "utf8"));
 }
 
-function uglify(code) {
-  return pro.gen_code(pro.ast_squeeze(pro.ast_mangle(jsp.parse(code))), {ascii_only: true, beautify: false});
+function uglify(code, ascii_only) {
+  return pro.gen_code(pro.ast_squeeze(pro.ast_mangle(jsp.parse(code))), {
+      ascii_only: ascii_only,
+      beautify: false   
+  });
 }
 
 function readData(obj, c) {
@@ -85,29 +88,30 @@ function gatherCode(direct, urls, c) {
 }
 
 function respond(query, resp) {
-  var direct = queryVal(query, "js_code"), urls = query.code_url || [];
+  var direct = queryVal(query, "js_code"), urls = query.code_url || [],
+      ascii_only = typeof queryVal(query, "utf8") != "string";
   gatherCode(direct, urls, function(code) {
     if (queryVal(query, "form") == "show" || !code)
-      respondHTML(direct, urls, code, resp);
+      respondHTML(direct, urls, code, ascii_only, resp);
     else
-      respondDirect(code, queryVal(query, "download"), resp);
+      respondDirect(code, queryVal(query, "download"), ascii_only, resp);
   });
 }
 
-function respondHTML(direct, urls, code, resp) {
+function respondHTML(direct, urls, code, ascii_only, resp) {
   resp.writeHead(200, {"Content-Type": "text/html"});
-  var tmpl = {code: direct, urls: urls, old_size: code.length};
+  var tmpl = {code: direct, urls: urls, old_size: code.length, ascii_only: ascii_only};
   if (code) {
-    try {tmpl.mini = uglify(code);}
+    try {tmpl.mini = uglify(code, ascii_only);}
     catch(e) {tmpl.error = e.message;}
   }
   resp.write(template("body")(tmpl));
   resp.end();
 }
 
-function respondDirect(code, download, resp) {
+function respondDirect(code, download, ascii_only, resp) {
   var mini, error;
-  try {mini = uglify(code);}
+  try {mini = uglify(code, ascii_only);}
   catch(e) {error = e.message;}
   if (error) {
     resp.writeHead(400, {"Content-Type": "text/html"});

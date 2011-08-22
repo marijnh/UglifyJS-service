@@ -54,6 +54,10 @@
         which case the code passed in <code>js_code</code> will end up
         after the code from URLs.</dd>
 
+        <dt><code>utf8</code></dt>
+        <dd>Defaults to off, can be pass (with any value) to allow
+        non-ascii characters to appear in the output.</dd>
+
         <dt><code>download</code></dt>
         <dd>When given, this should contain a filename. The server
         will add a <code>Content-Disposition</code> header to the
@@ -88,6 +92,8 @@
         order is important, add your files one-by-one.
         <input type="file" id="file-api-inp" multiple/>
       </p>
+
+      <p><input type="checkbox" name="utf8" <?if !$arg.ascii_only?>checked<?if.?>> allow non-ascii output</p>
 
       <p>
         <input type="submit" name="form" value="show"> or
