@@ -35,7 +35,7 @@
       <p>UglifyJS compression can be used as an HTTP service by
       sending a <code>POST</code> or <code>GET</code> request to this
       URL, with any of the parameters listed below either embedded in
-      the URL, or in a <code>application/x-www-form-urlencoded</code>
+      the URL, or in an <code>application/x-www-form-urlencoded</code>
       request body. The response body will contain the compressed code
       in case of a successful request, or an error message when
       returning an error HTTP status code.</p>
@@ -55,7 +55,7 @@
         after the code from URLs.</dd>
 
         <dt><code>utf8</code></dt>
-        <dd>Defaults to off, can be pass (with any value) to allow
+        <dd>Defaults to off, can be passed (with any value) to allow
         non-ascii characters to appear in the output.</dd>
 
         <dt><code>download</code></dt>
