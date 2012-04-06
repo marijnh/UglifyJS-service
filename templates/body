@@ -104,8 +104,8 @@
       <p>
         <b>Ugly version:</b><br/>
         <span style="font-size: 90%">
-        Old version:  <?t $arg.old_size?> bytes<br/>
-        New version: <?t $arg.mini.length?> bytes<br/>
+        Old version:  <?t $arg.old_size?> characters<br/>
+        New version: <?t $arg.mini.length?> characters<br/>
         Saved: <?t $arg.old_size - $arg.mini.length?> (result is <?t String(($arg.mini.length/$arg.old_size)*100).slice(0,4)?>% of original)<br/></span>
         <textarea style="height: 20em"><?t $arg.mini?></textarea>
       </p>

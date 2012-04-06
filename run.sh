@@ -1,3 +1,3 @@
 #! /bin/bash
 
-while true; do nodejs serve.js; done
+while true; do node serve.js; done
