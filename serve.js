@@ -76,9 +76,11 @@ function gatherCode(direct, urls, c) {
           if (resp.statusCode < 300) {
             resp.on("data", function(chunk) {chunks.push(chunk);});
             resp.on("end", function() {accum.push(chunks.join("")); iter(i + 1);});
+            resp.on("error", function() { iter(i + 1); });
           }
           else iter(i + 1);
         });
+        req.on("error", function() { iter(i + 1); });
         req.end();
       }
       else iter(i + 1);
