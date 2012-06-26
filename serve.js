@@ -7,6 +7,8 @@ var sys = require("sys"),
     pro = require("./lib/UglifyJS/lib/process"),
     Mold = require("./lib/mold/mold.node");
 
+var ujsversion = JSON.parse(fs.readFileSync("./lib/UglifyJS/package.json")).version;
+
 function forEachIn(obj, f) {
   var hop = Object.prototype.hasOwnProperty;
   for (var n in obj) if (hop.call(obj, n)) f(n, obj[n]);
@@ -102,7 +104,7 @@ function respond(query, resp) {
 
 function respondHTML(direct, urls, code, ascii_only, resp) {
   resp.writeHead(200, {"Content-Type": "text/html"});
-  var tmpl = {code: direct, urls: urls, old_size: code.length, ascii_only: ascii_only};
+  var tmpl = {code: direct, urls: urls, old_size: code.length, ascii_only: ascii_only, version: ujsversion};
   if (code) {
     try {tmpl.mini = uglify(code, ascii_only);}
     catch(e) {tmpl.error = e.message;}

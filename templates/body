@@ -25,7 +25,10 @@
   </head>
 
   <body>
-    <h1><a href="http://github.com/mishoo/UglifyJS/">UglifyJS</a> JavaScript minification</h1>
+    <h1>
+      <a href="http://github.com/mishoo/UglifyJS/">UglifyJS</a> JavaScript minification
+      <span style="font-size: 40%; color: #888">version <?t $arg.version?></span>
+    </h1>
 
     <p>Use the form below, or
     the <a href="javascript:void(document.getElementById('httpdoc').style.display='');">HTTP
