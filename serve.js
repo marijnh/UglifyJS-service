@@ -7,7 +7,7 @@ var sys = require("sys"),
     pro = require("./lib/UglifyJS/lib/process"),
     Mold = require("./lib/mold/mold.node");
 
-var ujsversion = JSON.parse(fs.readFileSync("./lib/UglifyJS/package.json")).version;
+var ujsversion = JSON.parse(fs.readFileSync("./lib/UglifyJS/package.json", "utf8")).version;
 
 function forEachIn(obj, f) {
   var hop = Object.prototype.hasOwnProperty;
