@@ -61,7 +61,7 @@ function readData(obj, c) {
 http.createServer(function(req, resp) {
   var question = req.url.indexOf("?");
   var query = question == -1 ? {} : parseQuery(req.url.slice(question + 1));
-  if (req.method == "POST" && req.headers["content-type"] == "application/x-www-form-urlencoded")
+  if (req.method == "POST" && req.headers["content-type"] == "application/x-www-form-urlencoded") {
     readData(req, function(data) {
       forEachIn(parseQuery(data), function(name, val) {
         var current = query.hasOwnProperty(name) && query[name];
@@ -69,45 +69,41 @@ http.createServer(function(req, resp) {
       });
       respond(query, resp);
     });
-  else
+  } else {
     respond(query, resp);
+  }
 }).listen(8080, "localhost");
 
 function gatherCode(direct, urls, c) {
-  var files = [];
-  // TODO more parallel
-  function iter(i) {
-    if (i == urls.length) {
+  var files = [], todo = urls.length + 1;
+  function done() {
+    if (--todo == 0) {
       if (direct) files.push({string: direct});
-      c(files);
-    }
-    else {
-      var parsed = url.parse(urls[i]);
-      if (/^https?:$/.test(parsed.protocol)) {
-        var client = http.createClient(parsed.port || 80, parsed.hostname, parsed.protocol == "https:");
-        var req = client.request("GET", parsed.pathname + (parsed.search || ""), {"Host": parsed.hostname});
-        var chunks = [], redir = 0;
-        req.on("response", function(resp) {
-          if (resp.statusCode < 300) {
-            resp.on("data", function(chunk) {chunks.push(chunk);});
-            resp.on("end", function() {
-              files.push({string: chunks.join(""), name: urls[i]});
-              iter(i + 1);
-            });
-            resp.on("error", function(e) { iter(i + 1); });
-          } else if (resp.statusCode < 400 && redir < 10 && resp.headers.location) {
-            redir++;
-            urls[i] = resp.headers.location;
-            iter(i);
-          } else iter(i + 1);
-        });
-        req.on("error", function(e) { console.log(e);iter(i + 1); });
-        req.end();
-      }
-      else iter(i + 1);
+      c(files.filter(function(x){return x;}));
     }
   }
-  iter(0);
+  function handle(url, i, redir) {
+    var chunks = [];
+    var req = http.request(urls[i], function(resp) {
+      if (resp.statusCode < 300) {
+        resp.on("data", function(chunk) {chunks.push(chunk);});
+        resp.on("end", function() {
+          files[i] = {string: chunks.join(""), name: urls[i]};
+          done();
+        });
+        resp.on("error", done);
+      } else if (resp.statusCode < 400 && redir < 10 && resp.headers.location) {
+        self(resp.headers.location, i, redir + 1);
+      } else done();
+    });
+    req.on("error", function(e) { console.log(e); done(); });
+    req.end();
+  }
+  urls.forEach(function self(url, i) {
+    if (/^https?:/.test(url)) handle(url, i, 0);
+    else done();
+  });
+  done();
 }
 
 function respond(query, resp) {
