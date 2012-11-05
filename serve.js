@@ -3,11 +3,11 @@ var sys = require("sys"),
     fs = require("fs"),
     qs = require("querystring"),
     url = require("url"),
-    jsp = require("./lib/UglifyJS/lib/parse-js"),
-    pro = require("./lib/UglifyJS/lib/process"),
-    Mold = require("./lib/mold/mold.node");
+    ujs = require("uglify-js2"),
+    Mold = require("mold-template");
+ujs.AST_Node.warn_function = null;
 
-var ujsversion = JSON.parse(fs.readFileSync("./lib/UglifyJS/package.json", "utf8")).version;
+var ujsversion = JSON.parse(fs.readFileSync("./node_modules/uglify-js2/package.json", "utf8")).version;
 
 function forEachIn(obj, f) {
   var hop = Object.prototype.hasOwnProperty;
@@ -31,11 +31,24 @@ function template(name) {
   return templates[name] = Mold.bake(fs.readFileSync("templates/" + name, "utf8"));
 }
 
-function uglify(code, ascii_only) {
-  return pro.gen_code(pro.ast_squeeze(pro.ast_mangle(jsp.parse(code))), {
-      ascii_only: ascii_only,
-      beautify: false   
+function uglify(files, ascii_only, source_map) {
+  var parsed = null, allNamed = true, opts = {ascii_only: ascii_only};
+  files.forEach(function(file) {
+    parsed = ujs.parse(file.string, {filename: file.name, toplevel: parsed});
+    if (!file.name) allNamed = false;
   });
+  if (!parsed) return "";
+  if (source_map) {
+    if (!allNamed) throw new Error("Source maps only work when all files are URLs");
+    opts.source_map = ujs.SourceMap({});
+  }
+  var compressor = ujs.Compressor({});
+  parsed.figure_out_scope();
+  parsed.transform(compressor);
+  parsed.mangle_names();
+  var output = ujs.OutputStream(opts);
+  parsed.print(output);
+  return source_map ? opts.source_map.toString() : output.get();
 }
 
 function readData(obj, c) {
@@ -61,28 +74,34 @@ http.createServer(function(req, resp) {
 }).listen(8080, "localhost");
 
 function gatherCode(direct, urls, c) {
-  var accum = [];
+  var files = [];
   // TODO more parallel
   function iter(i) {
     if (i == urls.length) {
-      accum.push(direct);
-      c(accum.join("\n"));
+      if (direct) files.push({string: direct});
+      c(files);
     }
     else {
       var parsed = url.parse(urls[i]);
       if (/^https?:$/.test(parsed.protocol)) {
         var client = http.createClient(parsed.port || 80, parsed.hostname, parsed.protocol == "https:");
         var req = client.request("GET", parsed.pathname + (parsed.search || ""), {"Host": parsed.hostname});
-        var chunks = [];
+        var chunks = [], redir = 0;
         req.on("response", function(resp) {
           if (resp.statusCode < 300) {
             resp.on("data", function(chunk) {chunks.push(chunk);});
-            resp.on("end", function() {accum.push(chunks.join("")); iter(i + 1);});
-            resp.on("error", function() { iter(i + 1); });
-          }
-          else iter(i + 1);
+            resp.on("end", function() {
+              files.push({string: chunks.join(""), name: urls[i]});
+              iter(i + 1);
+            });
+            resp.on("error", function(e) { iter(i + 1); });
+          } else if (resp.statusCode < 400 && redir < 10 && resp.headers.location) {
+            redir++;
+            urls[i] = resp.headers.location;
+            iter(i);
+          } else iter(i + 1);
         });
-        req.on("error", function() { iter(i + 1); });
+        req.on("error", function(e) { console.log(e);iter(i + 1); });
         req.end();
       }
       else iter(i + 1);
@@ -93,39 +112,40 @@ function gatherCode(direct, urls, c) {
 
 function respond(query, resp) {
   var direct = queryVal(query, "js_code"), urls = query.code_url || [],
-      ascii_only = typeof queryVal(query, "utf8") != "string";
-  gatherCode(direct, urls, function(code) {
-    if (queryVal(query, "form") == "show" || !code)
-      respondHTML(direct, urls, code, ascii_only, resp);
-    else
-      respondDirect(code, queryVal(query, "download"), ascii_only, resp);
+      ascii_only = typeof queryVal(query, "utf8") != "string",
+      source_map = typeof queryVal(query, "source_map") == "string";
+  gatherCode(direct, urls, function(files) {
+    try { var output = uglify(files, ascii_only, source_map); }
+    catch(e) { var error = e.message || e.msg; }
+    if (queryVal(query, "form") == "show" || !files.length) {
+      var totalLen = files.reduce(function(cur, f) {return cur + f.string.length;}, 0);
+      respondHTML(direct, urls, totalLen, ascii_only, output, error, resp);
+    } else {
+      respondDirect(queryVal(query, "download"), output, error, resp);
+    }
   });
 }
 
-function respondHTML(direct, urls, code, ascii_only, resp) {
+function respondHTML(direct, urls, totalLen, ascii, output, error, resp) {
   resp.writeHead(200, {"Content-Type": "text/html"});
-  var tmpl = {code: direct, urls: urls, old_size: code.length, ascii_only: ascii_only, version: ujsversion};
-  if (code) {
-    try {tmpl.mini = uglify(code, ascii_only);}
-    catch(e) {tmpl.error = e.message;}
-  }
-  resp.write(template("body")(tmpl));
+  resp.write(template("body")({
+    code: direct,
+    urls: urls, old_size: totalLen, ascii_only: ascii,
+    mini: output, error: error,
+    version: ujsversion
+  }));
   resp.end();
 }
 
-function respondDirect(code, download, ascii_only, resp) {
-  var mini, error;
-  try {mini = uglify(code, ascii_only);}
-  catch(e) {error = e.message;}
+function respondDirect(download, output, error, resp) {
   if (error) {
     resp.writeHead(400, {"Content-Type": "text/html"});
     resp.write(template("failed")(error));
-  }
-  else {
+  } else {
     var headers = {"Content-Type": "text/javascript"};
     if (download) headers["Content-Disposition"] = "attachment; filename=" + download;
     resp.writeHead(200, headers);
-    resp.write(mini);
+    resp.write(output);
   }
   resp.end();
 }
