@@ -1,5 +1,8 @@
-Follow the instructions in lib/README to fetch dependencies.
+# Web service for UglifyJS
 
-Then....
+Based on [UglifyJS2][ujs]. Running at http://marijnhaverbeke.nl/uglifyjs .
 
-    nohup nodejs serve.js
+[ujs]: https://github.com/mishoo/UglifyJS2
+
+Install the depencendies with `nmp install`. Then start the `serve.js`
+script to run a server on port 8080 (edit the code to change port).
