@@ -1,8 +1,9 @@
 var sys = require("sys"),
     http = require("http"),
+    https = require("https"),
     fs = require("fs"),
     qs = require("querystring"),
-    url = require("url"),
+    url_parse = require("url").parse,
     ujs = require("uglify-js2"),
     Mold = require("mold-template");
 ujs.AST_Node.warn_function = null;
@@ -84,22 +85,22 @@ function gatherCode(direct, urls, c) {
   }
   function handle(url, i, redir) {
     var chunks = [];
-    var req = http.request(urls[i], function(resp) {
+    var req = (/^https:/.test(url) ? https : http).request(url_parse(url), function(resp) {
       if (resp.statusCode < 300) {
         resp.on("data", function(chunk) {chunks.push(chunk);});
         resp.on("end", function() {
-          files[i] = {string: chunks.join(""), name: urls[i]};
+          files[i] = {string: chunks.join(""), name: url};
           done();
         });
         resp.on("error", done);
       } else if (resp.statusCode < 400 && redir < 10 && resp.headers.location) {
-        self(resp.headers.location, i, redir + 1);
+        handle(resp.headers.location, i, redir + 1);
       } else done();
     });
     req.on("error", function(e) { console.log(e); done(); });
     req.end();
   }
-  urls.forEach(function self(url, i) {
+  urls.forEach(function(url, i) {
     if (/^https?:/.test(url)) handle(url, i, 0);
     else done();
   });
