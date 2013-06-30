@@ -2,13 +2,14 @@ var sys = require("sys"),
     http = require("http"),
     https = require("https"),
     fs = require("fs"),
+    path = require("path"),
     qs = require("querystring"),
     url_parse = require("url").parse,
-    ujs = require("uglify-js2"),
+    ujs = require("uglify-js"),
     Mold = require("mold-template");
 ujs.AST_Node.warn_function = null;
 
-var ujsversion = JSON.parse(fs.readFileSync("./node_modules/uglify-js2/package.json", "utf8")).version;
+var ujsversion = JSON.parse(fs.readFileSync(path.normalize(__dirname +"/node_modules/uglify-js/package.json"), "utf8")).version;
 
 function forEachIn(obj, f) {
   var hop = Object.prototype.hasOwnProperty;
@@ -29,7 +30,7 @@ function queryVal(query, name) {
 var templates = {};
 function template(name) {
   if (templates.hasOwnProperty(name)) return templates[name];
-  return templates[name] = Mold.bake(fs.readFileSync("templates/" + name, "utf8"));
+  return templates[name] = Mold.bake(fs.readFileSync(path.normalize(__dirname +"/templates/" + name), "utf8"));
 }
 
 function uglify(files, ascii_only, source_map) {
