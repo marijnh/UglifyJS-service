@@ -5,11 +5,11 @@ var sys = require("sys"),
     path = require("path"),
     qs = require("querystring"),
     url_parse = require("url").parse,
-    ujs = require("uglify-js2"),
+    ujs = require("uglify-js"),
     Mold = require("mold-template");
 ujs.AST_Node.warn_function = null;
 
-var ujsversion = JSON.parse(fs.readFileSync( path.normalize(__dirname +"/node_modules/uglify-js2/package.json"), "utf8")).version;
+var ujsversion = JSON.parse(fs.readFileSync( path.normalize(__dirname +"/node_modules/uglify-js/package.json"), "utf8")).version;
 
 function forEachIn(obj, f) {
   var hop = Object.prototype.hasOwnProperty;

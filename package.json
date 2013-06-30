@@ -4,8 +4,10 @@
     "description": "UglifyJS HTTP service",
     "licenses": [{"type": "MIT",
                   "url": "http://codemirror.net/LICENSE"}],
-    "dependencies": {"uglify-js2": "2.x.x",
-                     "mold-template": "1.x.x"},
+    "dependencies": {
+        "uglify-js": "2.x.x",
+        "mold-template": "1.x.x"
+    },
     "bugs": "https://github.com/marijnh/uglifyjs-service/issues",
     "keywords": ["minification", "http"],
     "homepage": "http://marijnhaverbeke.nl/uglifyjs",
