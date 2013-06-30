@@ -1,6 +1,6 @@
 {
     "name": "uglifyjs-service",
-    "version":"1.01.0",
+    "version":"1.2.0",
     "description": "UglifyJS HTTP service",
     "licenses": [{"type": "MIT",
                   "url": "http://codemirror.net/LICENSE"}],
@@ -12,6 +12,12 @@
     "keywords": ["minification", "http"],
     "homepage": "http://marijnhaverbeke.nl/uglifyjs",
     "author": "Marijn Haverbeke <marijnh@gmail.com>",
+    "contributors": [
+        {
+            "name": "Makis Tracend",
+            "email": "makis@makesit.es"
+        }
+    ],
     "repositories": [{"type": "git",
                       "url": "https://github.com/marijnh/uglifyjs-service.git"}]
 }
