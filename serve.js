@@ -6,6 +6,7 @@ var sys = require("sys"),
     qs = require("querystring"),
     url_parse = require("url").parse,
     ujs = require("uglify-js"),
+    config = require("./config"),
     Mold = require("mold-template");
 ujs.AST_Node.warn_function = null;
 
@@ -74,7 +75,7 @@ http.createServer(function(req, resp) {
   } else {
     respond(query, resp);
   }
-}).listen(8080, "localhost");
+}).listen(config['port'], config['host']);
 
 function gatherCode(direct, urls, c) {
   var files = [], todo = urls.length + 1;
