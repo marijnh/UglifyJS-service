@@ -113,7 +113,7 @@ function respond(query, resp) {
   var direct = queryVal(query, "js_code"), urls = query.code_url || [],
       ascii_only = typeof queryVal(query, "utf8") != "string",
       source_map = typeof queryVal(query, "source_map") == "string",
-      header = queryVal(query, "header") || "";
+      header = (queryVal(query, "header") || "").replace(/\r\n/g, "\n");
   if (header && !/\n$/.test(header)) header += "\n";
   gatherCode(direct, urls, function(files) {
     try { var output = uglify(files, ascii_only, source_map); }
