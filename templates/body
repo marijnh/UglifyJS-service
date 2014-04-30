@@ -74,6 +74,10 @@
         will add a <code>Content-Disposition</code> header to the
         response, which causes typical browsers to download the
         response under the given filename.</dd>
+
+        <dt><code>header</code></dt>
+        <dd>A raw string (often a comment) that should be put at the
+        start of the output file.</dd>
       </dl>
 
       <p>This API is loosely based

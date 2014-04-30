@@ -113,15 +113,16 @@ function respond(query, resp) {
   var direct = queryVal(query, "js_code"), urls = query.code_url || [],
       ascii_only = typeof queryVal(query, "utf8") != "string",
       source_map = typeof queryVal(query, "source_map") == "string",
-      comment = queryVal(query, "comment_description") || '';
+      header = queryVal(query, "header") || "";
+  if (header && !/\n$/.test(header)) header += "\n";
   gatherCode(direct, urls, function(files) {
     try { var output = uglify(files, ascii_only, source_map); }
     catch(e) { var error = e.message || e.msg; }
     if (queryVal(query, "form") == "show" || !files.length) {
       var totalLen = files.reduce(function(cur, f) {return cur + f.string.length;}, 0);
-      respondHTML(direct, urls, totalLen, ascii_only, comment + output, error, resp);
+      respondHTML(direct, urls, totalLen, ascii_only, header + output, error, resp);
     } else {
-      respondDirect(queryVal(query, "download"), comment + output, error, resp);
+      respondDirect(queryVal(query, "download"), header + output, error, resp);
     }
   });
 }
